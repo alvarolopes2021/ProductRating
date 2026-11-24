@@ -16,3 +16,24 @@ export async function hashPassword(
 
   return { hash, salt };
 }
+
+/**
+ * Verifies a plain-text password against a stored bcrypt hash.
+ *
+ * Malformed or missing hashes are treated as an invalid password so callers
+ * can keep returning the same generic authentication error.
+ */
+export async function verifyPassword(
+  password: string,
+  hash: string,
+): Promise<boolean> {
+  if (!hash) {
+    return false;
+  }
+
+  try {
+    return await bcrypt.compare(password, hash);
+  } catch {
+    return false;
+  }
+}

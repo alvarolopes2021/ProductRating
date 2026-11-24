@@ -1,8 +1,5 @@
-import { CheckCircle2 } from "lucide-react";
+import { Check, Star } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
-
-import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Account created",
@@ -10,28 +7,31 @@ export const metadata: Metadata = {
 
 export default function SignUpSuccessPage() {
   return (
-    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
-      <div
-        aria-hidden="true"
-        className="bg-primary/10 pointer-events-none absolute -top-48 -left-48 -z-10 size-[34rem] rounded-full blur-3xl"
-      />
-
-      <div className="bg-card w-full max-w-md rounded-2xl border p-8 text-center shadow-xl shadow-emerald-500/5">
-        <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
-          <CheckCircle2 className="size-7" />
+    <main className="flex min-h-dvh items-center px-5 py-10 sm:px-8 lg:px-12">
+      <div className="mx-auto w-full max-w-2xl">
+        <div className="flex items-center gap-2.5 text-foreground">
+          <span className="flex size-9 items-center justify-center rounded-md border border-border bg-card">
+            <Star className="size-4 fill-signal text-signal" />
+          </span>
+          <span className="text-[0.9375rem] font-medium tracking-[-0.01em]">
+            Product Ratings
+          </span>
         </div>
 
-        <h1 className="mt-6 text-2xl font-semibold tracking-tight">
-          Your account is ready
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm text-pretty">
-          Welcome to Product Ratings. You can now sign in and start sharing your
-          honest reviews.
-        </p>
+        <div className="mt-16 border-t border-border pt-8 lg:mt-20">
+          <span className="inline-flex size-8 items-center justify-center rounded-full bg-success/10 text-success">
+            <Check className="size-4" />
+          </span>
 
-        <Button asChild size="lg" className="mt-8 w-full">
-          <Link href="/">Go to home</Link>
-        </Button>
+          <h1 className="reveal-once mt-6 max-w-[18ch] font-serif text-[clamp(2.5rem,5vw,4rem)] leading-[1.05] tracking-[-0.035em]">
+            Your account is ready.
+          </h1>
+
+          <p className="mt-5 max-w-[45ch] text-[0.9375rem] leading-[1.7] text-muted-foreground text-pretty">
+            Thanks for joining Product Ratings. We saved your details and your
+            account is ready whenever you are.
+          </p>
+        </div>
       </div>
     </main>
   );
