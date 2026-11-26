@@ -2,7 +2,6 @@ import { nanoid } from "nanoid";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getSession } from "@/lib/auth/session";
 import { listProducts, type Product } from "@/lib/products";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import {
@@ -43,15 +42,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const session = await getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: "Sign in to add a product." },
-        { status: 401 },
-      );
-    }
-
     let body: unknown;
 
     try {
@@ -62,6 +52,7 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    console.log(body);
 
     const parsed = createProductSchema.safeParse(body);
 
@@ -75,7 +66,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, description, imageUrl, externalLink } = parsed.data;
+    const { name, link, image } = parsed.data;
     const supabase = getSupabaseAdmin();
 
     const { data, error } = await supabase
@@ -83,13 +74,13 @@ export async function POST(request: Request) {
       .insert({
         id: nanoid(),
         name,
-        description: description ?? null,
-        image_url: imageUrl ?? null,
-        external_link: externalLink,
+        description: null,
+        image_url: image ?? null,
+        external_link: link,
         score: false,
       })
       .select(
-        "id, name, description, image_url, external_link, score, created_at, updated_at",
+        "id, name, description, image_url, external_link, score, ai_summary, ai_summary_updated_at, created_at, updated_at",
       )
       .single();
 
@@ -104,6 +95,8 @@ export async function POST(request: Request) {
       imageUrl: data.image_url,
       externalLink: data.external_link,
       score: data.score,
+      aiSummary: data.ai_summary,
+      aiSummaryUpdatedAt: data.ai_summary_updated_at,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     };

@@ -15,16 +15,12 @@ Substituir o stub de `/` por uma home pública que lista produtos de forma pagin
 - A spec pede "imagem" na listagem e no POST, mas não lista coluna de imagem. Será adicionada `image_url text` — inclusão necessária para atender ao requisito visual.
 - O POST da spec está escrito como `/products`; para consistência com o GET será `/api/v1/products`.
 - "200 ou array vazio" será implementado como `200` com `{ items: [], nextPage: null }`, necessário para o infinite query.
-- A home continua **pública**; apenas o POST de inserção exige sessão.
+- Home e POST de inserção são **públicos**; nenhuma autenticação é exigida (decisão posterior à aprovação do plano). O payload do POST usa `name`, `link` e `image`.
 - A spec Sign-In pedia "home sem nada"; a spec Home prevalece, conforme combinado no plano de Sign-In.
 
 ## 3. Contratos compartilhados (congelados)
 
-Consumidos de `lib/auth/session.ts` (implementado pelo agente Sign-In):
-
-```ts
-getSession(): Promise<{ account: SessionAccount } | null>
-```
+Nenhum contrato de sessão é consumido: a home e o POST de produtos são públicos.
 
 Implementado por este agente e consumido pelo agente Feedback:
 
@@ -95,13 +91,13 @@ updated_at timestamptz not null default now()
 - Sem produtos: `200` com `{ items: [], nextPage: null }`.
 - Erro de banco: 500 com mensagem genérica, sem vazar detalhes.
 
-### `POST /api/v1/products` (inserção manual)
+### `POST /api/v1/products` (ingestão pública)
 
-- Exigir `getSession()`; sem sessão → 401.
-- Body validado: `name` (2–120), `externalLink` (URL), `description` opcional (até 500), `imageUrl` opcional (URL).
+- Endpoint público: sem sessão, sem permissão e sem chave de admin.
+- Body validado: `name` (2–120), `link` (URL http/https), `image` opcional (URL http/https).
+- Mapeamento: `link` → `external_link`, `image` → `image_url`; `description` é gravado como `null`.
 - `id` gerado com `nanoid()` na API.
-- Resposta `201` com o produto criado; 409 não é necessário (sem unicidade declarada).
-- Nenhuma chave de admin nova: a proteção reusa a sessão já prevista na spec Sign-In.
+- Resposta `201` com `{ product }`; 409 não é necessário (sem unicidade declarada).
 
 ### Home e infinite scrolling
 
@@ -140,7 +136,7 @@ updated_at timestamptz not null default now()
 - Paginação carrega mais itens ao rolar, sem duplicatas e sem loop de requisições.
 - Cada item mostra título (link), imagem e descrição simples.
 - Clique no título navega para `/products/{id}` (página criada pelo agente Feedback).
-- `POST /api/v1/products` rejeita anônimo com 401 e cria produto com 201 quando autenticado.
+- `POST /api/v1/products` aceita anônimo, recebe `name`/`link`/`image` e cria produto com 201.
 - Migration aplicável junto com a migration de feedback (ordem por timestamp).
 - `npm run typecheck` e `npm run build` passam após integração das três specs.
 

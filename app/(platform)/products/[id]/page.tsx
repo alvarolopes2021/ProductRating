@@ -1,4 +1,4 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { FeedbackForm } from "@/components/feedback-form";
 import { FeedbackList } from "@/components/feedback-list";
 import { Button } from "@/components/ui/button";
+import { ensureProductSummary } from "@/lib/ai/product-summary";
 import { getSession } from "@/lib/auth/session";
 import { listFeedback } from "@/lib/feedback";
 import { getProductById } from "@/lib/products";
@@ -26,6 +27,8 @@ export default async function ProductPage({
     listFeedback(product.id),
     getSession(),
   ]);
+
+  const aiSummary = await ensureProductSummary(product, feedback);
 
   return (
     <main className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
@@ -78,6 +81,40 @@ export default async function ProductPage({
           </div>
         )}
       </div>
+
+      {aiSummary ? (
+        <section
+          aria-labelledby="ai-summary-title"
+          className="mt-14 border-l-2 border-signal bg-signal/[0.04] px-5 py-6 sm:px-7"
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <Sparkles className="size-4 text-signal" aria-hidden="true" />
+            <h2
+              id="ai-summary-title"
+              className="text-sm font-medium tracking-[-0.01em]"
+            >
+              AI summary
+            </h2>
+            <span className="rounded-sm border border-signal/35 px-1.5 py-0.5 text-[0.625rem] font-semibold tracking-[0.12em] text-signal">
+              AI
+            </span>
+          </div>
+          <p className="mt-4 max-w-[70ch] font-serif text-[1.25rem] leading-relaxed tracking-[-0.01em] text-balance">
+            {aiSummary}
+          </p>
+          <p className="mt-4 text-xs text-muted-foreground">
+            Generated from {feedback.length}{" "}
+            {feedback.length === 1 ? "review" : "reviews"}. AI can make
+            mistakes.
+          </p>
+        </section>
+      ) : feedback.length > 0 ? (
+        <section className="mt-14 border-l-2 border-border px-5 py-5 sm:px-7">
+          <p className="text-sm text-muted-foreground">
+            AI summary is unavailable right now.
+          </p>
+        </section>
+      ) : null}
 
       <section className="mt-16">
         <div className="flex items-baseline justify-between gap-5">

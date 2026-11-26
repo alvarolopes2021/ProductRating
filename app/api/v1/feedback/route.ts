@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { ensureProductSummary } from "@/lib/ai/product-summary";
 import { getSession } from "@/lib/auth/session";
-import { createFeedback } from "@/lib/feedback";
+import { createFeedback, listFeedback } from "@/lib/feedback";
 import { getProductById } from "@/lib/products";
 import { feedbackRequestSchema } from "@/lib/validations/feedback";
 
@@ -56,6 +57,21 @@ export async function POST(request: Request) {
       score: parsed.data.score,
       comment: parsed.data.comment,
       createdBy: session.account.id,
+    });
+
+    // Regenerate the AI summary in the background so submitting a review is
+    // never delayed by the model call. Failures are logged inside the helper.
+    after(async () => {
+      const [updatedProduct, allFeedback] = await Promise.all([
+        getProductById(product.id),
+        listFeedback(product.id),
+      ]);
+
+      if (updatedProduct) {
+        await ensureProductSummary(updatedProduct, allFeedback, {
+          force: true,
+        });
+      }
     });
 
     return NextResponse.json(feedback, { status: 201 });

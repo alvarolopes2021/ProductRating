@@ -7,6 +7,8 @@ export type Product = {
   imageUrl: string | null;
   externalLink: string;
   score: boolean;
+  aiSummary: string | null;
+  aiSummaryUpdatedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -18,12 +20,14 @@ type ProductRow = {
   image_url: string | null;
   external_link: string;
   score: boolean;
+  ai_summary: string | null;
+  ai_summary_updated_at: string | null;
   created_at: string;
   updated_at: string;
 };
 
 const PRODUCT_COLUMNS =
-  "id, name, description, image_url, external_link, score, created_at, updated_at";
+  "id, name, description, image_url, external_link, score, ai_summary, ai_summary_updated_at, created_at, updated_at";
 
 function toProduct(row: ProductRow): Product {
   return {
@@ -33,6 +37,8 @@ function toProduct(row: ProductRow): Product {
     imageUrl: row.image_url,
     externalLink: row.external_link,
     score: row.score,
+    aiSummary: row.ai_summary,
+    aiSummaryUpdatedAt: row.ai_summary_updated_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -85,4 +91,23 @@ export async function getProductById(id: string): Promise<Product | null> {
   }
 
   return data ? toProduct(data as ProductRow) : null;
+}
+
+/** Persists the AI summary generated from all reviews of a product. */
+export async function updateProductAiSummary(
+  id: string,
+  summary: string,
+): Promise<void> {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase
+    .from("products")
+    .update({
+      ai_summary: summary,
+      ai_summary_updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) {
+    throw error;
+  }
 }
